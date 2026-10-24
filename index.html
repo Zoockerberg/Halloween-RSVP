@@ -6,7 +6,7 @@
 <base target="_top">
 <title>Halloween Party</title>
 <meta name="description" content="Saturday 31 October, from 5:30 pm. Put your name down.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500..700&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,400&family=Special+Elite&family=Spectral:wght@300;400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500..700&family=Creepster&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,400&family=Special+Elite&family=Spectral:wght@300;400&display=swap">
 <style>
   /* Layout: full-bleed 3D scene, invitation card centred over it once you're inside. */
   :root {
@@ -37,6 +37,12 @@
   .when { margin-top: 16px; font-family: var(--type); font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--bone); opacity: .85; }
   .rule { width: 56px; height: 1px; background: var(--faint); margin: 18px auto 0; }
 
+  /* The opening shot gets the playful dripping title; the card inside keeps the scratched serif. */
+  .intro h1 { font-family: Creepster, var(--title); font-weight: 400; font-variation-settings: normal; letter-spacing: .04em; color: #ff8a1f; filter: none;
+    font-size: clamp(56px, 16vw, 104px); line-height: .92; animation: none;
+    text-shadow: 0 1px 0 #d9600c, 0 2px 0 #c2540a, 0 3px 0 #a94808, 0 4px 0 #8f3c06, 0 5px 0 #763105, 0 6px 0 #5c2604, 0 12px 22px rgba(0,0,0,.85), 0 0 46px rgba(255,138,31,.55); }
+  .intro h1 span { display: inline-block; animation: bob 3.2s ease-in-out infinite; animation-delay: calc(var(--i) * -0.18s); }
+  @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
   .intro { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 20px; pointer-events: none; transition: opacity 1.6s ease; }
   .intro.gone { opacity: 0; }
   .skip { position: fixed; left: 0; right: 0; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); text-align: center; color: var(--muted); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; transition: opacity .6s; }
@@ -80,7 +86,7 @@
   @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   .empty { color: var(--muted); font-style: italic; font-size: 15px; margin: 0; }
   [hidden] { display: none !important; }
-  @media (prefers-reduced-motion: reduce) { #grain, h1, .done .ghost { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { #grain, h1, .done .ghost, .intro h1 span { animation: none; } }
 </style>
 </head>
 <body>
@@ -135,6 +141,16 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
+// Bobbing letters for the playful opening title.
+(function () {
+  const h = document.querySelector(".intro h1");
+  h.setAttribute("aria-label", h.textContent);
+  const text = h.textContent; h.textContent = "";
+  text.split("").forEach((ch, i) => {
+    if (ch === " ") { h.appendChild(document.createElement("br")); return; }
+    const sp = document.createElement("span"); sp.textContent = ch; sp.style.setProperty("--i", i); sp.setAttribute("aria-hidden", "true"); h.appendChild(sp);
+  });
+})();
 const ui = {
   show() {
     document.getElementById("intro").classList.add("gone");
@@ -517,7 +533,7 @@ addEventListener("pointerdown", () => { if (!document.getElementById("main").cla
       const face = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), new THREE.MeshBasicMaterial({ map: faceTex[kind || 0], transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
       face.position.z = 0.97; g.add(face); g.add(glow(0xff7a10, 4.2, 0.6));
       const pool = glow(0xff6a00, 5, 0.35); pool.position.y = -0.7; g.add(pool);
-      g.userData.face = face;
+      g.userData.face = face; g.userData.kind = kind || 0; g.userData.z = z;
     }
     g.position.set(x, y + 0.72 * s, z); g.scale.setScalar(s); g.rotation.y = turn != null ? turn : (Math.random() - 0.5) * 0.6;
     scene.add(g); return g;
@@ -637,6 +653,18 @@ addEventListener("pointerdown", () => { if (!document.getElementById("main").cla
     b.scale.setScalar(0.6 + Math.random() * 0.4); scene.add(b); bats.push(b);
   }
 
+  // A cartoon ghost drifting past the upstairs windows during the walk-up.
+  const toonC = canvas(256, 256), tg = toonC.getContext("2d");
+  tg.fillStyle = "rgba(240,248,255,.95)"; tg.shadowColor = "#bfe8ff"; tg.shadowBlur = 24;
+  tg.beginPath(); tg.arc(128, 98, 62, Math.PI, 0); tg.lineTo(190, 210);
+  for (let i = 0; i < 4; i++) { const x = 190 - (i + 1) * 31; tg.quadraticCurveTo(x + 15, i % 2 ? 236 : 190, x, 210); }
+  tg.closePath(); tg.fill();
+  tg.shadowBlur = 0; tg.fillStyle = "#14161f";
+  tg.beginPath(); tg.ellipse(108, 98, 9, 15, 0, 0, 7); tg.ellipse(148, 98, 9, 15, 0, 0, 7); tg.fill();
+  tg.beginPath(); tg.ellipse(128, 134, 11, 14, 0, 0, 7); tg.fill();
+  const toon = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(toonC), transparent: true, opacity: 0, depthWrite: false, fog: false }));
+  toon.scale.set(2.4, 2.4, 1); scene.add(toon);
+
   // ----- Camera choreography -----
   const look = { x: 0, y: 0 }, lookS = { x: 0, y: 0 };
   addEventListener("pointermove", (e) => { look.x = (e.clientX / innerWidth - 0.5) * 2; look.y = (e.clientY / innerHeight - 0.5) * 2; });
@@ -699,7 +727,19 @@ addEventListener("pointerdown", () => { if (!document.getElementById("main").cla
     chandLight.intensity = (2.4 + party * 3) * flick(3);
     sconce.forEach((l, i) => { l.intensity = (1.1 + party * 1.5) * flick(5 + i); });
     flames.forEach((f, i) => { const s = (0.45 + party * 0.3) * flick(i + 11); f.scale.set(s * 0.7, s, 1); });
-    carved.forEach((p, i) => { p.userData.face.material.opacity = Math.min(1, (0.95 + party * 0.3) * flick(20 + i)); });
+    carved.forEach((p, i) => {
+      const d = p.userData;
+      d.face.material.opacity = Math.min(1, (0.95 + party * 0.3) * flick(20 + i));
+      // Wink at you as you walk past, and now and then on their own.
+      const passing = d.kind !== 3 && d.z > 5 && z - d.z > 1.5 && z - d.z < 4.5;
+      const idle = d.kind !== 3 && Math.sin(t * 0.9 + i * 2.7) > 0.985;
+      const map = passing || idle ? faceTex[3] : faceTex[d.kind];
+      if (d.face.material.map !== map) { d.face.material.map = map; d.face.material.needsUpdate = true; }
+    });
+    // Ghost loop outside: glide from the left window to the right one, then fade.
+    const gt = (time % 5) / 5;
+    toon.material.opacity = z > 2 ? Math.sin(Math.PI * gt) * 0.9 : 0;
+    toon.position.set(-5.5 + gt * 11, 6.6 + Math.sin(t * 3) * 0.25, 0.7);
     windowLights.forEach((w, i) => { const v = 0.8 + Math.sin(t * 0.5 + i * 3) * 0.08 + (Math.sin(t * 0.37 + i * 5) > 0.985 ? -0.5 : 0); w.material.color.setScalar(v * (i === windowLights.length - 1 ? 0.6 : 1)); });
     chandelier.rotation.z = Math.sin(t * 0.6) * 0.015; chandelier.rotation.x = Math.sin(t * 0.47) * 0.012;
 
