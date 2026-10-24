@@ -10,7 +10,11 @@ Live at https://halloween-rsvp-gamma.vercel.app. Pushing to `main` redeploys it.
 - `Code.gs` is the older Google Apps Script backend. The page links to it as a
   backup while the database isn't connected.
 
-## Connecting the database (once, in the Vercel dashboard)
+## Database
+
+Connected (Upstash for Redis, via the project's Storage tab, October 2026).
+
+### Reconnecting it (in the Vercel dashboard)
 
 1. Open the **halloween-rsvp** project → **Storage** → **Create Database**.
 2. Pick **Upstash for Redis** (free plan), create it, and connect it to the
