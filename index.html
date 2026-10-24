@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <base target="_top">
+<title>Halloween Party RSVP</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&family=Rubik:wght@400;600;800&display=swap">
 <style>
   :root { --ink:#f6efe4; --muted:#c3b3dc; --orange:#ff8a1f; --glow:#ffcf4a; --night:#07030d; --glass:rgba(24,10,30,.62); --line:rgba(255,160,80,.3); }
@@ -608,10 +611,33 @@ function renderGuests(names) {
   document.getElementById("count").textContent = "Who's coming (" + names.length + ")";
 }
 
-google.script.run
-  .withSuccessHandler(renderGuests)
-  .withFailureHandler((err) => { document.getElementById("empty").textContent = "Couldn't load the guest list: " + cleanError(err); })
-  .getGuests();
+// The page runs either inside Google Apps Script (google.script.run) or as a
+// standalone site (Vercel), where it calls the same script as a JSON API.
+const API_URL = "https://script.google.com/macros/s/AKfycbyqVB2ZMQvthD8blmhPJAzF02SKahFpceXuLfzD9c0bOumovY3InIK0CbO-wvoOgEHO/exec";
+const inAppsScript = !!(window.google && google.script && google.script.run);
+
+function unwrap(data) {
+  if (!data || !data.ok) throw new Error((data && data.error) || "");
+  return data.names;
+}
+
+function api(action, name) {
+  if (inAppsScript) {
+    return new Promise((resolve, reject) => {
+      const run = google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);
+      if (action === "rsvp") run.rsvp(name); else run.getGuests();
+    });
+  }
+  // text/plain keeps this a simple request, which Apps Script accepts cross-origin.
+  const req = action === "rsvp"
+    ? fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ name }) })
+    : fetch(API_URL + "?action=guests");
+  return req.then((res) => res.json()).then(unwrap);
+}
+
+api("guests")
+  .then(renderGuests)
+  .catch(() => { document.getElementById("empty").textContent = "Couldn't load the guest list. Refresh the page to try again."; });
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -620,21 +646,20 @@ form.addEventListener("submit", (e) => {
   button.disabled = true;
   button.textContent = "Summoning...";
   error.hidden = true;
-  google.script.run
-    .withSuccessHandler((names) => {
+  api("rsvp", name)
+    .then((names) => {
       myName = name;
       renderGuests(names);
       document.getElementById("done-name").textContent = "You're on the list, " + name + "!";
       document.getElementById("flipper").classList.add("flipped");
       fx.celebrate();
     })
-    .withFailureHandler((err) => {
+    .catch((err) => {
       button.disabled = false;
       button.textContent = "I'm coming 🎃";
       error.textContent = cleanError(err);
       error.hidden = false;
-    })
-    .rsvp(name);
+    });
 });
 </script>
 </body>

@@ -1,8 +1,8 @@
 // Halloween party RSVP (Google Apps Script).
 //
-// Serves the RSVP page and keeps the guest list in a Google Doc. The page
-// itself (index.html) is loaded from this GitHub repo, so design changes
-// pushed there go live within a few minutes without redeploying the script.
+// Keeps the guest list in a Google Doc. The site on Vercel calls this script
+// as a JSON API (GET ?action=guests, POST {"name": ...}). Opening the script's
+// own link still serves the page too, loaded from this GitHub repo.
 //
 // Every non-empty line below "Guest list" in the doc is one guest, so you can
 // also add, fix or delete names straight in the doc. If the script can't open
@@ -17,7 +17,8 @@ const MARKER = "Guest list";
 const MAX_NAME_LENGTH = 60;
 const PAGE_CACHE_SECONDS = 120;
 
-function doGet() {
+function doGet(e) {
+  if (e && e.parameter && e.parameter.action === "guests") return json_(apiCall_(getGuests));
   const cache = CacheService.getScriptCache();
   let html = cache.get("page");
   if (!html) {
@@ -31,6 +32,31 @@ function doGet() {
   return HtmlService.createHtmlOutput(html)
     .setTitle("Halloween Party RSVP")
     .addMetaTag("viewport", "width=device-width, initial-scale=1");
+}
+
+// JSON API for the standalone site (Vercel): POST {"name": "..."} to RSVP.
+function doPost(e) {
+  return json_(apiCall_(() => {
+    let body = {};
+    try {
+      body = JSON.parse(e.postData.contents);
+    } catch (err) {
+      throw new Error("Couldn't read your RSVP. Try again.");
+    }
+    return rsvp(body.name);
+  }));
+}
+
+function apiCall_(fn) {
+  try {
+    return { ok: true, names: fn() };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function getDoc_() {
