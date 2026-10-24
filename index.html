@@ -6,7 +6,7 @@
 <base target="_top">
 <title>Halloween Party</title>
 <meta name="description" content="Saturday 31 October, from 5:30 pm. Put your name down.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,400&family=Spectral:wght@300;400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,400&family=Special+Elite&family=Spectral:wght@300;400&display=swap">
 <style>
   /* Layout: full-bleed 3D scene, invitation card centred over it once you're inside. */
   :root {
@@ -14,6 +14,8 @@
     --blood: #7a1c1c; --blood-hi: #962722; --ink: #0a0908; --glass: rgba(10,9,8,.72);
     --display: "Cormorant Garamond", Garamond, "Times New Roman", serif;
     --body: Spectral, Georgia, "Times New Roman", serif;
+    --title: Cinzel, "Trajan Pro", Georgia, serif;
+    --type: "Special Elite", "Courier New", monospace;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--ink); color: var(--bone); font-family: var(--body); font-weight: 300; overflow: hidden; }
@@ -25,10 +27,14 @@
     animation: grain .9s steps(6) infinite; }
   @keyframes grain { 0% { transform: translate(0,0); } 20% { transform: translate(-6%,4%); } 40% { transform: translate(5%,-7%); } 60% { transform: translate(-3%,8%); } 80% { transform: translate(7%,2%); } 100% { transform: translate(0,0); } }
 
-  .kicker { font-family: var(--display); font-style: italic; font-size: 19px; color: var(--muted); letter-spacing: .02em; }
-  h1 { font-family: var(--display); font-weight: 300; text-transform: uppercase; letter-spacing: .16em; margin: 6px 0 0; line-height: 1;
-    font-size: clamp(38px, 10.5vw, 76px); text-shadow: 0 2px 24px rgba(0,0,0,.9); text-wrap: balance; }
-  .when { margin-top: 14px; font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: var(--bone); opacity: .85; }
+  .kicker { font-family: var(--type); font-size: 14px; color: var(--muted); letter-spacing: .12em; text-transform: lowercase; }
+  /* Scratched, blade-cut capitals in the spirit of the Sinister title card. */
+  h1 { font-family: var(--title); font-weight: 400; text-transform: uppercase; letter-spacing: .14em; margin: 10px 0 0; line-height: 1.02;
+    font-size: clamp(40px, 11.5vw, 82px); color: #ece6da; filter: url(#scratch) drop-shadow(0 0 18px rgba(0,0,0,.95)); text-wrap: balance;
+    animation: jitter 4.5s steps(1) infinite; }
+  @keyframes jitter { 0%, 100% { transform: none; opacity: 1; } 31% { transform: translate(1px, 0) skewX(-1deg); opacity: .82; } 32% { transform: none; opacity: 1; }
+    67% { transform: translate(-1px, 1px); opacity: .9; } 68% { transform: none; opacity: 1; } 88% { opacity: .55; } 89% { opacity: 1; } }
+  .when { margin-top: 16px; font-family: var(--type); font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--bone); opacity: .85; }
   .rule { width: 56px; height: 1px; background: var(--faint); margin: 18px auto 0; }
 
   .intro { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 20px; pointer-events: none; transition: opacity 1.6s ease; }
@@ -64,7 +70,7 @@
   .done p { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 14px 0 0; }
 
   .guests { width: 100%; max-width: 380px; margin-top: 30px; }
-  .guests h3 { font-size: 11px; font-weight: 400; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+  .guests h3 { font-family: var(--type); font-size: 12px; font-weight: 400; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
   .guests ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; text-align: left; }
   .guests li { font-family: var(--display); font-size: 19px; padding: 7px 0; border-bottom: 1px solid rgba(233,226,211,.1); min-width: 0; overflow-wrap: anywhere;
     animation: fade .8s ease both; animation-delay: calc(var(--i) * 50ms); }
@@ -72,10 +78,19 @@
   @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   .empty { color: var(--muted); font-style: italic; font-size: 15px; margin: 0; }
   [hidden] { display: none !important; }
-  @media (prefers-reduced-motion: reduce) { #grain { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { #grain, h1 { animation: none; } }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="scratch" x="-5%" y="-10%" width="110%" height="120%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.035 0.9" numOctaves="2" seed="7" result="streaks"/>
+    <feDisplacementMap in="SourceGraphic" in2="streaks" scale="4" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.9 0.04" numOctaves="1" seed="2" result="scratches"/>
+    <feColorMatrix in="scratches" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.75" result="mask"/>
+    <feComposite in="rough" in2="mask" operator="in"/>
+  </filter>
+</svg>
 <canvas id="scene"></canvas>
 <div id="flash"></div>
 <div id="vignette"></div>
