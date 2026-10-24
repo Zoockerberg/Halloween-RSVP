@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Halloween Guest List</title>
+<meta name="description" content="Everyone who has RSVP'd to the Halloween party on Saturday 31 October.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500..600&family=Special+Elite&family=Spectral:wght@300;400&display=swap">
+<style>
+  /* Layout: one narrow column, count first, then the numbered list in sign-up order. */
+  :root {
+    --bone: #e9e2d3; --muted: #a39a8a; --faint: rgba(233,226,211,.14); --line: rgba(233,226,211,.1);
+    --ember: #ff8a1f; --blood: #7a1c1c; --blood-hi: #962722; --ink: #0b0a0c;
+    --title: "Bodoni Moda", Didot, "Bodoni 72", Georgia, serif;
+    --type: "Special Elite", "Courier New", monospace;
+    --body: Spectral, Georgia, "Times New Roman", serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--ink); }
+  body { margin: 0; min-height: 100vh; color: var(--bone); font-family: var(--body); font-weight: 300;
+    background: radial-gradient(ellipse at 50% -10%, rgba(255,138,31,.10), transparent 55%), var(--ink); }
+  main { max-width: 560px; margin: 0 auto; padding-block: 48px 64px;
+    padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+  .kicker { font-family: var(--type); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  h1 { font-family: var(--title); font-weight: 600; font-variation-settings: "opsz" 24; font-size: clamp(40px, 11vw, 64px); letter-spacing: .06em;
+    text-transform: uppercase; line-height: 1; margin: 12px 0 0; text-wrap: balance; }
+  .summary { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-top: 32px;
+    padding-bottom: 20px; border-bottom: 1px solid var(--faint); }
+  .count { font-family: var(--title); font-weight: 500; font-size: 56px; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
+  .count small { display: block; font-family: var(--type); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
+  button { font: inherit; font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--bone); background: var(--blood);
+    border: 1px solid rgba(233,226,211,.2); border-radius: 1px; padding: 13px 20px; cursor: pointer; transition: background .3s; }
+  button:hover { background: var(--blood-hi); }
+  button:focus-visible { outline: 1px solid var(--bone); outline-offset: 3px; }
+  button:disabled { opacity: .5; cursor: default; }
+  ol { list-style: none; margin: 0; padding: 0; counter-reset: guest; }
+  li { counter-increment: guest; display: grid; grid-template-columns: 2.2em 1fr auto; align-items: baseline; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+  li::before { content: counter(guest); font-family: var(--type); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .name { font-family: var(--title); font-weight: 500; font-size: 21px; min-width: 0; overflow-wrap: anywhere; }
+  .when { font-family: var(--type); font-size: 12px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .note { color: var(--muted); font-size: 16px; line-height: 1.6; margin: 24px 0 0; }
+  .note a, footer a { color: var(--bone); }
+  footer { margin-top: 36px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: var(--type); font-size: 12px; letter-spacing: .06em; color: var(--muted); }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0;
+    background: #1a1714; border: 1px solid var(--faint); color: var(--bone); padding: 10px 16px; font-size: 14px; transition: opacity .3s, transform .3s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  [hidden] { display: none !important; }
+  @media (max-width: 420px) { li { grid-template-columns: 2em 1fr; } .when { grid-column: 2; margin-top: -6px; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">Halloween Party · Saturday 31 October · from 5:30 pm</p>
+  <h1>Guest list</h1>
+
+  <div class="summary">
+    <div class="count"><span id="count">–</span><small id="count-label">coming</small></div>
+    <button id="copy" type="button" disabled>Copy list</button>
+  </div>
+
+  <ol id="list"></ol>
+  <p class="note" id="note">Loading the guest list…</p>
+
+  <footer>
+    <span id="updated"></span>
+    <a href="/">Open the RSVP page</a>
+  </footer>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const list = document.getElementById("list");
+const note = document.getElementById("note");
+const copyBtn = document.getElementById("copy");
+let guests = [];
+
+const fmt = new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+const timeFmt = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+
+function render() {
+  document.getElementById("count").textContent = guests.length;
+  document.getElementById("count-label").textContent = guests.length === 1 ? "person coming" : "people coming";
+  list.replaceChildren(...guests.map((g) => {
+    const li = document.createElement("li");
+    const name = document.createElement("span"); name.className = "name"; name.textContent = g.name;
+    const when = document.createElement("span"); when.className = "when"; when.textContent = g.at ? fmt.format(new Date(g.at)) : "";
+    li.append(name, when);
+    return li;
+  }));
+  note.hidden = guests.length > 0;
+  if (!guests.length) note.innerHTML = 'No one has signed up yet. Names appear here as soon as people RSVP on <a href="/">the invitation page</a>.';
+  copyBtn.disabled = guests.length === 0;
+  document.getElementById("updated").textContent = "Updated " + timeFmt.format(new Date());
+}
+
+async function load() {
+  try {
+    const res = await fetch("/api/rsvp", { cache: "no-store" });
+    const data = await res.json();
+    if (data.error === "not_configured") { note.hidden = false; note.textContent = "The guest list isn't connected yet. It will show here once the database is set up in Vercel."; return; }
+    if (!data.ok) throw new Error(data.error);
+    guests = data.guests || data.names.map((name) => ({ name, at: null }));
+    render();
+  } catch {
+    if (!guests.length) { note.hidden = false; note.textContent = "Couldn't load the guest list. Refresh the page to try again."; }
+  }
+}
+
+function toast(text) {
+  const t = document.getElementById("toast");
+  t.textContent = text; t.classList.add("show");
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+copyBtn.addEventListener("click", () => {
+  const text = "Halloween Party, Sat 31 Oct from 5:30 pm: " + guests.length + " coming\n" + guests.map((g, i) => (i + 1) + ". " + g.name).join("\n");
+  const fallback = () => {
+    const area = document.createElement("textarea");
+    area.value = text; area.setAttribute("readonly", ""); area.style.position = "fixed"; area.style.opacity = "0";
+    document.body.appendChild(area); area.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch {}
+    area.remove();
+    toast(ok ? "List copied" : "Couldn't copy. Select the names and copy them instead.");
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast("List copied"), fallback);
+  else fallback();
+});
+
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>
