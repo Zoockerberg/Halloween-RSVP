@@ -729,6 +729,16 @@ function renderGuests(names) {
 // standalone site (Vercel), where it calls the same script as a JSON API.
 const API_URL = "https://script.google.com/macros/s/AKfycbw-eu06KzmzC5JVT4qdVxhqNBqa-zwlaEH1fHUVN3peWA81x1Xd2KNhfgzvVFPvEXtt/exec";
 const inAppsScript = !!(window.google && google.script && google.script.run);
+// The original Google link still works on its own, so send people there if the API can't be reached.
+const BACKUP_URL = "https://script.google.com/macros/s/AKfycbyqVB2ZMQvthD8blmhPJAzF02SKahFpceXuLfzD9c0bOumovY3InIK0CbO-wvoOgEHO/exec";
+
+function showBackup(target, text) {
+  const a = document.createElement("a");
+  a.href = BACKUP_URL; a.target = "_top"; a.textContent = "Put your name down on the backup page";
+  a.style.color = "#f3d9b0";
+  target.replaceChildren(text + " ", a, ".");
+  target.hidden = false;
+}
 
 function unwrap(data) {
   if (!data || !data.ok) throw new Error((data && data.error) || "");
@@ -751,7 +761,8 @@ function api(action, name) {
 
 api("guests")
   .then(renderGuests)
-  .catch(() => { document.getElementById("empty").textContent = "Couldn't load the guest list. Refresh the page to try again."; });
+  .catch(() => { if (inAppsScript) document.getElementById("empty").textContent = "Couldn't load the guest list. Refresh the page to try again.";
+    else showBackup(document.getElementById("empty"), "The guest list isn't reachable right now."); });
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -772,8 +783,8 @@ form.addEventListener("submit", (e) => {
     .catch((err) => {
       button.disabled = false;
       button.textContent = "Count me in";
-      error.textContent = cleanError(err);
-      error.hidden = false;
+      if (!inAppsScript && err instanceof TypeError) showBackup(error, "Couldn't reach the guest list.");
+      else { error.textContent = cleanError(err); error.hidden = false; }
     });
 });
 </script>
