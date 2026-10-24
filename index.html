@@ -6,7 +6,7 @@
 <base target="_top">
 <title>Halloween Party</title>
 <meta name="description" content="Saturday 31 October, from 5:30 pm. Put your name down.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,400&family=Special+Elite&family=Spectral:wght@300;400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500..700&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,400&family=Special+Elite&family=Spectral:wght@300;400&display=swap">
 <style>
   /* Layout: full-bleed 3D scene, invitation card centred over it once you're inside. */
   :root {
@@ -14,7 +14,7 @@
     --blood: #7a1c1c; --blood-hi: #962722; --ink: #0a0908; --glass: rgba(10,9,8,.72);
     --display: "Cormorant Garamond", Garamond, "Times New Roman", serif;
     --body: Spectral, Georgia, "Times New Roman", serif;
-    --title: "IM Fell English SC", "Iowan Old Style", Georgia, serif;
+    --title: "Bodoni Moda", Didot, "Bodoni 72", Georgia, serif;
     --type: "Special Elite", "Courier New", monospace;
   }
   * { box-sizing: border-box; }
@@ -28,8 +28,8 @@
   @keyframes grain { 0% { transform: translate(0,0); } 20% { transform: translate(-6%,4%); } 40% { transform: translate(5%,-7%); } 60% { transform: translate(-3%,8%); } 80% { transform: translate(7%,2%); } 100% { transform: translate(0,0); } }
 
   .kicker { font-family: var(--type); font-size: 14px; color: var(--muted); letter-spacing: .12em; text-transform: lowercase; }
-  /* Old letterpress capitals, scratched like damaged film, in the spirit of the Sinister title card. */
-  h1 { font-family: var(--title); font-weight: 400; text-transform: uppercase; letter-spacing: .08em; margin: 10px 0 0; line-height: 1.02;
+  /* High-contrast capitals, scratched like damaged film, in the spirit of the Sinister title card. */
+  h1 { font-family: var(--title); font-weight: 600; font-variation-settings: "opsz" 24; text-transform: uppercase; letter-spacing: .1em; margin: 10px 0 0; line-height: 1.02;
     font-size: clamp(40px, 11.5vw, 82px); color: #ece6da; filter: url(#scratch) drop-shadow(0 0 18px rgba(0,0,0,.95)); text-wrap: balance;
     animation: jitter 4.5s steps(1) infinite; }
   @keyframes jitter { 0%, 100% { transform: none; opacity: 1; } 31% { transform: translate(1px, 0) skewX(-1deg); opacity: .82; } 32% { transform: none; opacity: 1; }
@@ -66,6 +66,8 @@
   button:focus-visible { outline: 1px solid var(--bone); outline-offset: 3px; }
   button:disabled { opacity: .6; cursor: default; }
   .error { color: #e3a196; font-size: 14px; margin: 12px 0 0; }
+  .done .ghost { font-size: 44px; line-height: 1; margin-bottom: 12px; animation: haunt 3s ease-in-out infinite; }
+  @keyframes haunt { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-8px) rotate(4deg); } }
   .done h2 { font-family: var(--display); font-weight: 300; font-size: 30px; line-height: 1.15; margin: 0; text-wrap: balance; }
   .done p { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 14px 0 0; }
 
@@ -78,16 +80,16 @@
   @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   .empty { color: var(--muted); font-style: italic; font-size: 15px; margin: 0; }
   [hidden] { display: none !important; }
-  @media (prefers-reduced-motion: reduce) { #grain, h1 { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { #grain, h1, .done .ghost { animation: none; } }
 </style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <filter id="scratch" x="-5%" y="-10%" width="110%" height="120%">
     <feTurbulence type="fractalNoise" baseFrequency="0.035 0.9" numOctaves="2" seed="7" result="streaks"/>
-    <feDisplacementMap in="SourceGraphic" in2="streaks" scale="4" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+    <feDisplacementMap in="SourceGraphic" in2="streaks" scale="3" xChannelSelector="R" yChannelSelector="G" result="rough"/>
     <feTurbulence type="fractalNoise" baseFrequency="0.9 0.04" numOctaves="1" seed="2" result="scratches"/>
-    <feColorMatrix in="scratches" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.75" result="mask"/>
+    <feColorMatrix in="scratches" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.2 1.75" result="mask"/>
     <feComposite in="rough" in2="mask" operator="in"/>
   </filter>
 </svg>
@@ -118,6 +120,7 @@
       <button id="submit" type="submit">Count me in</button>
     </form>
     <div class="view done out" id="done" aria-live="polite">
+      <div class="ghost" aria-hidden="true">👻</div>
       <h2 id="done-name">See you on the 31st.</h2>
       <p>Doors open at 5:30 pm. Come in your scariest costume.</p>
     </div>
