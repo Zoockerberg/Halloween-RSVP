@@ -14,14 +14,14 @@
   .intro { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; pointer-events:none; transition:opacity 1.2s; }
   .intro.gone { opacity:0; }
   .skip { position:fixed; left:0; right:0; bottom:calc(28px + env(safe-area-inset-bottom, 0px)); text-align:center; color:var(--muted); font-size:13px; letter-spacing:2px; text-transform:uppercase; animation:pulse 2s ease-in-out infinite; transition:opacity .6s; }
-  .skip.gone { opacity:0; pointer-events:none; }
+  .skip.gone { animation:none; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .6s, visibility 0s .6s; }
   @keyframes pulse { 50% { opacity:.4; } }
 
   h1 { font-family:Creepster, Georgia, serif; font-weight:400; font-size:clamp(50px, 14vw, 92px); line-height:.9; margin:0; color:var(--orange); letter-spacing:2px; }
   h1 span { display:inline-block; animation:float 3.2s ease-in-out infinite; animation-delay:calc(var(--i) * -0.18s);
     text-shadow:0 1px 0 #d9600c, 0 2px 0 #c2540a, 0 3px 0 #a94808, 0 4px 0 #8f3c06, 0 5px 0 #763105, 0 6px 0 #5c2604, 0 10px 18px rgba(0,0,0,.8), 0 0 40px rgba(255,138,31,.6); }
   @keyframes float { 0%,100% { transform:translateY(0) rotate(-2deg); } 50% { transform:translateY(-8px) rotate(3deg); } }
-  .date { margin-top:16px; font-weight:800; font-size:13px; letter-spacing:5px; text-transform:uppercase; color:var(--glow); text-shadow:0 0 12px rgba(255,207,74,.8); }
+  .date { margin-top:16px; font-weight:800; font-size:13px; letter-spacing:3px; text-align:center; text-transform:uppercase; color:var(--glow); text-shadow:0 0 12px rgba(255,207,74,.8); }
 
   main { position:fixed; inset:0; overflow-y:auto; display:flex; flex-direction:column; align-items:center; padding:48px 18px 56px; perspective:1100px;
     opacity:0; transform:scale(.92); pointer-events:none; transition:opacity 1.4s, transform 1.4s cubic-bezier(.2,1.2,.4,1); }
@@ -68,18 +68,18 @@
 
 <div class="intro" id="intro">
   <h1 class="title" aria-label="Halloween Party"></h1>
-  <div class="date">Saturday · October 31</div>
+  <div class="date">Saturday · October 31 · 5:30 pm</div>
 </div>
 <div class="skip" id="skip">Tap to skip</div>
 
 <main id="main">
   <h1 class="title" aria-label="Halloween Party"></h1>
-  <div class="date">Saturday · October 31</div>
+  <div class="date">Saturday · October 31 · 5:30 pm</div>
 
   <div class="tilt" id="tilt">
     <div class="flipper" id="flipper">
       <form class="face front" id="form">
-        <p class="lede">You made it inside. Put your name down so we know you're coming.</p>
+        <p class="lede">You made it inside. Doors open at 5:30 pm, so bring your scariest costume! Put your name down so we know you're coming.</p>
         <label for="name">Your name</label>
         <input id="name" type="text" maxlength="60" autocomplete="name" placeholder="e.g. Morticia Addams" required>
         <p id="error" class="error" hidden></p>
@@ -88,7 +88,7 @@
       <div class="face back" aria-live="polite">
         <div class="big">👻</div>
         <strong id="done-name">You're on the list!</strong>
-        <span>See you Saturday. Costume encouraged.</span>
+        <span>See you Saturday at 5:30 pm. Bring your scariest costume!</span>
       </div>
     </div>
   </div>
@@ -424,7 +424,7 @@ addEventListener("pointerdown", (e) => { if (!document.getElementById("main").cl
     p.position.set(x, 4.2, z); p.rotation.y = ry; scene.add(p);
   });
 
-  const insidePumpkins = [[-3.5, 3.5, -6], [3.5, 4.2, -7], [0, 6, -8.6]].map(([x, y, z], i) => {
+  const insidePumpkins = [[-3.5, 3.5, -6], [3.5, 4.2, -7], [-5, 6.8, -8.6]].map(([x, y, z], i) => {
     const p = pumpkin(0.7); p.position.set(x, y, z); p.userData = { base: new THREE.Vector3(x, y, z), phase: i * 2.1, spin: 0 }; scene.add(p); return p;
   });
 

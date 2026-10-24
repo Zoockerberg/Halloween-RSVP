@@ -1,6 +1,6 @@
 # Halloween Party RSVP
 
-Haunted-house RSVP page for the Halloween party on Saturday, October 31.
+Haunted-house RSVP page for the Halloween party on Saturday, October 31, from 5:30 pm.
 Guests walk up a graveyard path into a haunted house and add their name.
 Names go to a Google Doc.
 
