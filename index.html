@@ -794,9 +794,8 @@ function renderGuests(names) {
   document.getElementById("count").textContent = names.length ? "Who's coming · " + names.length : "Who's coming";
 }
 
-// The page runs either inside Google Apps Script (google.script.run) or as a
-// standalone site (Vercel), where it calls the same script as a JSON API.
-const API_URL = "https://script.google.com/macros/s/AKfycbw-eu06KzmzC5JVT4qdVxhqNBqa-zwlaEH1fHUVN3peWA81x1Xd2KNhfgzvVFPvEXtt/exec";
+// The page runs either inside Google Apps Script (google.script.run, the
+// original link) or on Vercel, where it uses the site's own /api/rsvp.
 const inAppsScript = !!(window.google && google.script && google.script.run);
 // The original Google link still works on its own, so send people there if the API can't be reached.
 const BACKUP_URL = "https://script.google.com/macros/s/AKfycbyqVB2ZMQvthD8blmhPJAzF02SKahFpceXuLfzD9c0bOumovY3InIK0CbO-wvoOgEHO/exec";
@@ -821,11 +820,14 @@ function api(action, name) {
       if (action === "rsvp") run.rsvp(name); else run.getGuests();
     });
   }
-  // text/plain keeps this a simple request, which Apps Script accepts cross-origin.
+  // On Vercel the guest list lives in the project's own database, behind /api/rsvp.
   const req = action === "rsvp"
-    ? fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ name }) })
-    : fetch(API_URL + "?action=guests");
-  return req.then((res) => res.json()).then(unwrap);
+    ? fetch("/api/rsvp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) })
+    : fetch("/api/rsvp");
+  return req.then((res) => res.json().catch(() => { throw new TypeError("No guest list API"); })).then((data) => {
+    if (data && data.error === "not_configured") throw new TypeError("Guest list not set up");
+    return unwrap(data);
+  });
 }
 
 api("guests")
